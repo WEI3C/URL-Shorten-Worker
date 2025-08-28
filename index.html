@@ -1,312 +1,422 @@
 <!DOCTYPE html>
-<html lang="zh-cn">
+<html lang="zh-Hant">
 
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shorten-URL</title>
-    <style>
-        body,
-        html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            background-image: linear-gradient(-20deg, #d0b782 20%, #a0cecf 80%)
-        }
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>短網址 · Shorten-URL</title>
+  <meta name="color-scheme" content="light" />
+  <style>
+    :root {
+      --cream-50: #fffaf3;
+      --cream-100: #f7f1e7;
+      --latte-200: #efe6d9;
+      --latte-300: #e6d9c6;
+      --mint-300: #c8ddd7;
+      --mint-500: #95c3b9;
+      --ink-700: #3b332c;
+      --ink-500: #5a5048;
+      --line: #d8d1c7;
+      --shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      --radius: 16px;
+    }
 
-        input[type=text] {
-            border: none;
-            text-align: center;
-            outline: none;
-        }
+    * { box-sizing: border-box; }
 
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+    html, body { height: 100%; }
 
-        .card {
-            width: 800px;
-            background-color: #ebedee;
-            border-radius: 10px;
-            overflow: hidden;
-            border: 1px solid #9b9ea0;
-        }
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "PingFang TC", "Hiragino Sans GB", "Microsoft JhengHei", Arial, sans-serif;
+      color: var(--ink-700);
+      background: linear-gradient(160deg, var(--cream-50), var(--latte-200));
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
 
-        h2 {
-            text-align: center;
-            background-color: #dbdfe0a8;
-            margin: 0;
-            padding: 10px;
-            border-bottom: 1px solid #9b9ea0;
-            font-size: 20px;
-        }
+    .card {
+      width: min(880px, 100%);
+      background: linear-gradient(180deg, var(--cream-100), #fff);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
 
-        .form-group {
-            padding: 5px 20px 20px 20px;
-            box-sizing: border-box;
-            width: 100%;
-        }
+    .card header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffffaa, #ffffff);
+      backdrop-filter: saturate(110%);
+    }
 
-        .form-group>label {
-            width: 100px;
-            line-height: 40px;
-            font-size: 18px;
-        }
+    .title {
+      margin: 0;
+      font-size: clamp(18px, 2.2vw, 22px);
+      letter-spacing: 0.02em;
+      font-weight: 700;
+    }
 
-        .form-group>input {
-            width: 100%;
-            line-height: 28px;
-            font-size: 18px;
-            padding: 8px;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
+    .subtitle {
+      margin: 0;
+      font-size: 12px;
+      color: var(--ink-500);
+    }
 
-        .form-group>#submit {
-            width: 75%;
-            line-height: 40px;
-            font-size: 18px;
-            background-color: #61bee9;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: auto;
-            margin-top: 20px;
-            display: block;
-        }
+    .form {
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+    }
 
+    .field {
+      display: grid;
+      gap: 8px;
+    }
 
-        /* 遮罩层 */
-        .dialog {
-            width: 100%;
-            height: 100%;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            opacity: 0;
-            justify-content: center;
-            /* align-items: center; */
-            z-index: -1;
-            transition: opacity .4s ease-out, all .2s;
-            transform: translateZ(0);
-        }
+    label {
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
 
-        /* 弹窗 */
-        .dialog-content {
-            width: 450px;
-            margin-top: 0;
-            height: fit-content;
-            background-color: #fff;
-            border-radius: 10px;
-            overflow: hidden;
-            border: 1px solid #9b9ea0;
-            transition: margin-top .4s ease-out;
-        }
+    input[type="text"] {
+      width: 100%;
+      font-size: 16px;
+      line-height: 1.5;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink-700);
+      outline: none;
+      transition: border-color .2s ease, box-shadow .2s ease, transform .05s ease;
+    }
 
-        .dialog-content>.dialog-header {
-            width: 100%;
-            padding: 0 20px;
-            box-sizing: border-box;
-            line-height: 56px;
-            font-size: 25px;
-            border-bottom: 1px solid #9b9ea0;
-            display: flex;
-            justify-content: space-between;
-        }
+    input[type="text"]::placeholder { color: #a79f96; }
 
-        .dialog-content>.dialog-header>.dialog-close {
-            cursor: pointer;
-            /* 不可选中 */
-            user-select: none;
-        }
+    input[type="text"]:focus {
+      border-color: var(--mint-500);
+      box-shadow: 0 0 0 4px color-mix(in oklab, var(--mint-500) 22%, transparent);
+    }
 
-        .dialog-content>.dialog-body {
-            width: 100%;
-            padding: 0 20px;
-            box-sizing: border-box;
-            border-bottom: 1px solid #9b9ea0;
-            font-size: 19px;
-        }
+    .row {
+      display: grid;
+      gap: 16px;
+    }
 
-        .dialog-content>.dialog-footer {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            padding-bottom: 20px;
-        }
+    @media (min-width: 720px) {
+      .row { grid-template-columns: 2fr 1fr; }
+    }
 
-        .dialog-content>.dialog-footer>button {
-            width: 90px;
-            line-height: 35px;
-            font-size: 18px;
-            background-color: #61bee9;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: auto;
-            margin-top: 20px;
-            display: block;
-        }
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      padding-top: 8px;
+    }
 
-        /* 显示弹窗 */
-        .dialog-show {
-            opacity: 1;
-            z-index: 100;
-        }
+    .btn {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      min-width: 160px;
+      transition: transform .06s ease, box-shadow .2s ease, background-color .2s ease;
+    }
 
-        .dialog-show>.dialog-content {
-            margin-top: 20px;
-        }
-        footer{
-            position: fixed;
-            bottom: 5px;
-            width: 100%;;
-            text-align: center;
-            
-            font-size: 18px;
-        }
-        footer p{
-            color: #666;
-            margin: 0;
-            height: 30px;
-            line-height: 30px;
-        }
-        footer a{
-            color: #666;
-            text-decoration: none;
-        }
-        footer a:hover{
-            color: #61bee9;
-            text-decoration: underline;
-        }
-    </style>
+    .btn:disabled { opacity: .6; cursor: not-allowed; }
+
+    .btn-primary {
+      background: linear-gradient(180deg, var(--mint-500), color-mix(in oklab, var(--mint-500) 80%, #6aa99e));
+      color: #fff;
+      box-shadow: 0 8px 18px color-mix(in oklab, var(--mint-500) 40%, transparent);
+    }
+
+    .btn-primary:hover { filter: saturate(1.05); }
+    .btn-primary:active { transform: translateY(1px); }
+
+    .helper {
+      font-size: 13px;
+      color: var(--ink-500);
+    }
+
+    footer.site {
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--ink-500);
+      text-align: center;
+    }
+
+    footer.site a { color: inherit; text-underline-offset: 3px; }
+    footer.site a:hover { color: var(--ink-700); }
+
+    /* Dialog */
+    .dialog {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: color-mix(in oklab, #000 30%, transparent);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease;
+      padding: 20px;
+    }
+
+    .dialog[open] { opacity: 1; pointer-events: auto; }
+
+    .dialog-panel {
+      width: min(520px, 100%);
+      border-radius: var(--radius);
+      background: #fff;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transform: translateY(12px);
+      transition: transform .25s ease;
+    }
+
+    .dialog[open] .dialog-panel { transform: translateY(0); }
+
+    .dialog-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .dialog-title { font-weight: 700; }
+
+    .dialog-close {
+      font-size: 22px;
+      line-height: 1;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .dialog-close:hover { background: var(--cream-100); }
+
+    .dialog-body { padding: 18px; border-bottom: 1px solid var(--line); }
+
+    .short-url {
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+      padding: 10px 12px; border: 1px dashed var(--line); border-radius: 12px; background: #fff;
+      word-break: break-all;
+    }
+
+    .dialog-footer { padding: 16px; display: flex; justify-content: center; gap: 10px; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      inset-inline: 0;
+      bottom: 18px;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+    }
+
+    .toast > span {
+      background: #111;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 14px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity .2s ease, transform .2s ease;
+    }
+
+    .toast.show > span { opacity: 1; transform: translateY(0); }
+  </style>
 </head>
 
 <body>
-    <div class="dialog">
-        <div class="dialog-content">
-            <div class="dialog-header">
-                <span class="dialog-title">提示</span>
-                <span class="dialog-close">&times;</span>
-            </div>
-            <div class="dialog-body">
-                <!-- <p>短链接：<span id="shortUrl"></span></p> -->
-            </div>
-            <div class="dialog-footer">
-                <!-- 复制按钮 -->
-                <!-- <button class="copy" id="copy">复制</button> -->
-                <!-- 确定按钮 -->
-                <!-- <button class="conform" id="conform">确定</button> -->
-            </div>
+  <main class="card" role="main">
+    <header>
+      <div>
+        <h1 class="title">短網址產生器</h1>
+        <p class="subtitle">將冗長連結轉為好記又俐落的短網址</p>
+      </div>
+    </header>
+
+    <form class="form" id="shortenForm" novalidate>
+      <div class="field">
+        <label for="url">長網址</label>
+        <input type="text" id="url" name="url" inputmode="url" placeholder="例如：https://example.com/super/long/path?with=params" autocomplete="off" required />
+        <small class="helper">貼上想縮短的完整網址（需含 http:// 或 https://）。</small>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="shortStr">自訂短碼（選填）</label>
+          <input type="text" id="shortStr" name="shortStr" placeholder="例如：brand/launch（不需手動加開頭斜線）" autocomplete="off" />
+          <small class="helper">留空則自動產生隨機短碼。</small>
         </div>
-    </div>
-    <div class="card">
-        <h2>Shorten-URL</h2>
-        <div class="form-group">
-            <label for="url">长链接:</label>
-            <input type="text" id="url" name="url" placeholder="例：https://baidu.com" value="" />
-            <label for="shortStr">自定义路径:</label>
-            <input type="text" id="shortStr" name="shortStr" placeholder="例：bai/du 最前面不用加'/' 为空则自动生成一个路径" value="" />
-            <input type="button" id="submit" value="提交" />
+      </div>
+
+      <div class="actions">
+        <button type="submit" id="submit" class="btn btn-primary" aria-live="polite">產生短網址</button>
+      </div>
+    </form>
+  </main>
+
+  <footer class="site" aria-label="網站資訊">
+    <p>© <span id="year"></span> 短網址</p>
+  </footer>
+
+  <!-- Dialog -->
+  <div class="dialog" id="dialog" aria-modal="true" role="dialog" aria-labelledby="dialogTitle">
+    <div class="dialog-panel" role="document">
+      <div class="dialog-header">
+        <div class="dialog-title" id="dialogTitle">已建立短網址</div>
+        <button class="dialog-close" id="dialogClose" aria-label="關閉視窗">×</button>
+      </div>
+      <div class="dialog-body">
+        <div class="short-url">
+          <strong>短連結：</strong>
+          <span id="shortUrl" style="user-select: all;"></span>
         </div>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn" id="openLink">開啟連結</button>
+        <button class="btn btn-primary" id="copy">複製連結</button>
+      </div>
     </div>
-    <footer>
-        <p>author: <a href="https://wlnxing.com">wlnxing</a></p>
-    </footer>
+  </div>
 
-    <script>
-        var dialog = document.querySelector('.dialog');
-        var url = document.getElementById('url');
-        var shortStr = document.getElementById('shortStr');
-        var submit = document.getElementById('submit');
-        submit.onclick = function () {
-            if (url.value == '') {
-                alert('请输入长链接');
-                return false;
-            }
-            fetch('/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    url: url.value,
-                    shortStr: shortStr.value
-                })
-            }).then(function (res) {
-                if (res.ok)
-                    return res.json();
-                else
-                    throw res;
-            }).then(function (data) {
-                // alert('提交成功，短链接为：' + data.data.shortUrl);
-                // 在弹窗上显示短链接
+  <!-- Toast -->
+  <div class="toast" id="toast" aria-live="polite" aria-atomic="true">
+    <span id="toastMsg">已複製</span>
+  </div>
 
-                dialog.querySelector('.dialog-body').innerHTML =
-                    `<p>短链接：<span id="shortUrl">${location.host}/${data.data.shortUrl}</span></p>`;
-                // 在弹窗上显示复制按钮
-                dialog.querySelector('.dialog-footer').innerHTML =
-                    `<button class="copy" id="copy">复制</button>`;
+  <script>
+    const $ = (s, el = document) => el.querySelector(s);
+    const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 
-                // 复制按钮
-                var copy = document.getElementById('copy');
-                copy.onclick = function () {
-                    // 将短链接复制到剪贴板
-                    var shortUrl = document.querySelector('#shortUrl');
-                    try {
-                        let range = document.createRange();
-                        range.selectNode(shortUrl);
-                        window.getSelection().removeAllRanges();
-                        window.getSelection().addRange(range);
-                        document.execCommand('copy');
-                        window.getSelection().removeAllRanges();
-                        console.log('Copy success')
-                    } catch (e) {
-                        console.log('Copy error')
-                    }
-                }
-                // 显示弹窗
-                dialog.classList.add('dialog-show');
-            }).catch(async function (err) {
-                console.log(err);
-                let data;
-                try {
-                    data = await err.json();
-                } catch (e) {
-                    alert('提交失败，请检查网络');
-                    return false
-                }
-                console.log(data);
-                dialog.querySelector('.dialog-body').innerHTML = `<p>${data.msg}</p>`;
-                dialog.querySelector('.dialog-footer').innerHTML =
-                    `<button class="conform" id="conform">确定</button>`;
-                var conform = document.getElementById('conform');
-                conform.onclick = function () {
-                    dialog.classList.remove('dialog-show');
-                }
-                dialog.classList.add('dialog-show');
-            })
+    const form = $('#shortenForm');
+    const urlInput = $('#url');
+    const shortInput = $('#shortStr');
+    const submitBtn = $('#submit');
+
+    const dialog = $('#dialog');
+    const dialogClose = $('#dialogClose');
+    const shortUrlEl = $('#shortUrl');
+    const copyBtn = $('#copy');
+    const openBtn = $('#openLink');
+    const toast = $('#toast');
+    const toastMsg = $('#toastMsg');
+
+    // year
+    $('#year').textContent = new Date().getFullYear();
+
+    function showToast(msg = '已複製') {
+      toastMsg.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove('show'), 1600);
+    }
+
+    function isValidUrl(value) {
+      try { new URL(value); return true; } catch { return false; }
+    }
+
+    function setLoading(loading) {
+      submitBtn.disabled = loading;
+      submitBtn.textContent = loading ? '處理中…' : '產生短網址';
+      submitBtn.setAttribute('aria-busy', String(loading));
+    }
+
+    function openDialog() { dialog.setAttribute('open', ''); }
+    function closeDialog() { dialog.removeAttribute('open'); }
+
+    dialogClose.addEventListener('click', closeDialog);
+    dialog.addEventListener('click', (e) => { if (e.target === dialog) closeDialog(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDialog(); });
+
+    copyBtn.addEventListener('click', async () => {
+      const text = shortUrlEl.textContent || '';
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          // fallback
+          const r = document.createRange();
+          r.selectNode(shortUrlEl);
+          const sel = getSelection();
+          sel.removeAllRanges(); sel.addRange(r);
+          document.execCommand('copy');
+          sel.removeAllRanges();
         }
-        // 关闭按钮
-        document.querySelector('.dialog-close').onclick = function () {
-            dialog.classList.remove('dialog-show');
+        showToast('已複製到剪貼簿');
+      } catch (err) {
+        console.error(err);
+        showToast('複製失敗，請手動選取');
+      }
+    });
+
+    openBtn.addEventListener('click', () => {
+      const href = shortUrlEl.textContent;
+      if (href) window.open(href, '_blank', 'noopener');
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const longUrl = urlInput.value.trim();
+      const shortStr = shortInput.value.trim();
+
+      if (!longUrl) { urlInput.focus(); urlInput.select?.(); return; }
+      if (!isValidUrl(longUrl)) { showToast('請輸入有效的網址'); urlInput.focus(); return; }
+
+      setLoading(true);
+      try {
+        const res = await fetch('/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: longUrl, shortStr })
+        });
+
+        if (!res.ok) {
+          let data; try { data = await res.json(); } catch { throw new Error('提交失敗，請稍後再試'); }
+          throw new Error(data?.msg || '提交失敗，請稍後再試');
         }
-        // 点击空白处关闭弹窗
-        dialog.onclick = function (e) {
-            // 阻止事件冒泡
-            e.stopPropagation();
-            if (e.target == dialog) {
-                dialog.classList.remove('dialog-show');
-            }
-        }
-    </script>
+
+        const data = await res.json();
+        // 安全組裝短網址
+        const raw = String(data?.data?.shortUrl || '').replace(/^\/+/, '');
+        const finalUrl = `${location.origin}/${raw}`;
+
+        shortUrlEl.textContent = finalUrl;
+        openDialog();
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '提交失敗，請檢查網路');
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    // Enter 快速提交（在任一輸入框內）
+    $$('#url, #shortStr').forEach(el => {
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') form.requestSubmit?.(submitBtn);
+      });
+    });
+  </script>
 </body>
 
 </html>
